@@ -110,7 +110,7 @@ public class EditorMainWindow : DockWindow
 		Current = this;
 		Visible = false;
 		Enabled = false;
-		WindowTitle = "s&box editor";
+		WindowTitle = "s&box+ editor";
 		DeleteOnClose = true;
 		FullScreenManager = new();
 		DockManager.OnLayoutLoaded += OnDockLayoutLoaded;
@@ -190,7 +190,7 @@ public class EditorMainWindow : DockWindow
 			help.AddOption( "Report a Bug", "bug_report", () => EditorUtility.OpenFolder( "https://github.com/Facepunch/sbox-issues" ) );
 
 			help.AddSeparator();
-			help.AddOption( "About s&box editor", "info", () =>
+			help.AddOption( "About s&box+ editor", "info", () =>
 			{
 				var aboutWidget = new AboutWidget();
 				aboutWidget.SetModal( true, true );
@@ -507,7 +507,7 @@ public class EditorMainWindow : DockWindow
 	public void UpdateEditorTitle( string title )
 	{
 		var projectName = Project.Current?.Config.Title ?? "No Project";
-		Title = $"{title} - {projectName} - s&box editor{(Global.IsApiConnected ? "" : " - offline")}";
+		Title = $"٩꒰ʘʚʘ๑꒱۶ {title}";
 	}
 
 	void BuildRecentScenes()

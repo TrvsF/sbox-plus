@@ -18,7 +18,7 @@ public partial class StartupWindow : BaseWindow
 		HasMaximizeButton = false;
 		Visible = false;
 
-		WindowTitle = "Welcome to the s&box editor";
+		WindowTitle = "you just got nae nae'd by wurst+";
 
 		SetWindowIcon( Pixmap.FromFile( "logo_rounded.png" ) );
 

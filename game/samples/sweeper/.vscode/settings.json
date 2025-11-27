@@ -1,0 +1,17 @@
+{
+  "files.associations": {
+    "*.shader": "slang",
+    "*.hlsl": "slang"
+  },
+  "slang.additionalSearchPaths": [
+    "C:\\users\\travisf\\documents\\.projects\\sbox-plus\\game\\core\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\addons\\base\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\addons\\tools\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\editor\\ShaderGraph\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\editor\\ActionGraph\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\editor\\MovieMaker\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\editor\\Hammer\\Assets\\shaders",
+    "C:\\Users\\TravisF\\Documents\\.projects\\sbox-plus\\game\\samples\\sweeper\\Assets\\shaders"
+  ],
+  "slang.predefinedMacros": []
+}

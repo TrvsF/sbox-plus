@@ -27,7 +27,7 @@ public class AboutWidget : BaseWindow
 
 	public AboutWidget() : base()
 	{
-		WindowTitle = "About s&box editor";
+		WindowTitle = "About s&box+ editor";
 		SetWindowIcon( "info" );
 		DeleteOnClose = true;
 
@@ -40,7 +40,7 @@ public class AboutWidget : BaseWindow
 
 		// Add header
 		var messageLabel = Layout.Add( new Label() );
-		messageLabel.Text = "s&box editor © Facepunch Studios Ltd.";
+		messageLabel.Text = "s&box+ editor © ur mum Studios Ltd.";
 		messageLabel.TextSelectable = false;
 
 		// Add content layout

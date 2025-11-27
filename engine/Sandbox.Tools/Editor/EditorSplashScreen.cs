@@ -13,7 +13,7 @@
 			DeleteOnClose = true;
 
 			SetWindowIcon( Pixmap.FromFile( "window_icon.png" ) );
-			WindowTitle = "Opening s&box Editor";
+			WindowTitle = "are we dreaming?";
 			BackgroundImage = Pixmap.FromFile( "splash_screen.png" );
 
 			// load any saved geometry
