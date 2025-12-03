@@ -507,7 +507,7 @@ public class EditorMainWindow : DockWindow
 	public void UpdateEditorTitle( string title )
 	{
 		var projectName = Project.Current?.Config.Title ?? "No Project";
-		Title = $"٩꒰ʘʚʘ๑꒱۶ {title}";
+		Title = $"٩꒰ʘʚʘ๑꒱۶";
 	}
 
 	void BuildRecentScenes()

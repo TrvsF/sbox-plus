@@ -17,17 +17,18 @@ internal class Build
 
 		if ( isPublicSource )
 		{
-			Log.Info( "Detected public source distribution; downloading public artifacts and skipping native build." );
-			builder.AddStep( new DownloadPublicArtifacts( "Download Public Artifacts" ) );
+			Log.Info( "Builder thinks we can grab this version from source, this is disabled as it was failing to grab b4 (27/11/25)" );
+			// Log.Info( "Detected public source distribution; downloading public artifacts and skipping native build." );
+			// builder.AddStep( new DownloadPublicArtifacts( "Download Public Artifacts" ) );
 		}
 
 		// Always add interop gen
 		builder.AddStep( new Steps.InteropGen( "Interop Gen", isPublicSource ) );
 
 		if ( !isPublicSource )
-        {
-         		builder.AddStep( new Steps.ShaderProc( "Shader Proc" ) );   
-        }
+		{
+			builder.AddStep( new Steps.ShaderProc( "Shader Proc" ) );
+		}
 
 		// Add native build step if not skipped
 		if ( !shouldSkipNative )

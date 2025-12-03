@@ -4,54 +4,9 @@ namespace Editor;
 
 public class HomeWidget : Widget
 {
-	enum SortMethod
-	{
-		Date,
-		Name,
-		Org
-	}
-
-	private SortMethod _sort;
-	private SortMethod Sort
-	{
-		get => _sort;
-		set
-		{
-			if ( SortButton.IsValid() )
-			{
-				SortButton.Icon = value switch
-				{
-					SortMethod.Date => "calendar_month",
-					SortMethod.Name => "sort_by_alpha",
-					SortMethod.Org => "groups",
-					_ => ""
-				};
-			}
-
-			if ( _sort != value )
-			{
-				_sort = value;
-				RefreshLocalProjects();
-			}
-		}
-	}
-
-	private string _filter;
-	private string Filter
-	{
-		get => _filter;
-		set
-		{
-			_filter = value;
-			RefreshLocalProjects();
-		}
-	}
-
 	private Layout LocalProjectLayout { get; set; }
 
 	private ProjectList ProjectList { get; }
-
-	private IconButton SortButton;
 
 	public HomeWidget( Widget parent = null ) : base( parent )
 	{
@@ -70,32 +25,13 @@ public class HomeWidget : Widget
 			menuRow.Spacing = 4;
 			menuRow.Margin = new Sandbox.UI.Margin( 16, 16, 16, 0 );
 
-			SortButton = menuRow.Add( new IconButton( "sort_by_alpha" ) { OnClick = OpenPopup, ToolTip = "Sort by" } );
-			Sort = _sort;
-
-			{
-				var search = menuRow.Add( new LineEdit() { PlaceholderText = "⌕  Search" }, 2 );
-				search.SetStyles( "border-radius: 3px;" );
-				search.TextChanged += _ =>
-				{
-					Filter = search.Value;
-					search.Focus();
-				};
-				search.Blur();
-			}
-
 			menuRow.AddStretchCell( 1 );
-			//menuRow.Add( new IconButton( "cloud_download" )
-			//{
-			//	OnClick = ProjectDownload.OpenWindow,
-			//	ToolTip = $"Clone a project from {Global.BackendTitle}"
-			//} );
 			menuRow.Add( new IconButton( "create_new_folder" )
 			{
 				OnClick = AddProjectFromFile,
 				ToolTip = $"Add a project from a folder"
 			} );
-			menuRow.Add( new Button.Primary( "New Project...", "add" )
+			menuRow.Add( new Button.Primary( "", "add" )
 			{
 				FixedHeight = Theme.RowHeight,
 				Clicked = CreateProject,
@@ -194,64 +130,21 @@ public class HomeWidget : Widget
 			sampleProjects.Add( project );
 		}
 
-		//
-		// Sort everything
-		//
-		switch ( Sort )
+		LocalProjectLayout.Clear( true );
+		LocalProjectLayout.Margin = new Sandbox.UI.Margin( 16, 0, 16, 16 );
+
+		var nonSample = projects.Where( x => !sampleProjects.Any( y => x.ConfigFilePath == y.ConfigFilePath ) );
+		if ( nonSample.Any( x => x.Pinned ) )
 		{
-			case SortMethod.Name:
-				projects = projects.OrderBy( x => x.Config.Title ).ToList();
-				break;
-			case SortMethod.Org:
-				projects = projects.OrderBy( x => x.Package.Org.Title ).ToList();
-				break;
-			case SortMethod.Date:
-			default:
-				projects = projects.OrderByDescending( x => x.LastOpened ).ToList();
-				break;
+			var l = LocalProjectLayout.Add( new Label.Subtitle( "Epic Projects" ) { ContentMargins = 8, VerticalSizeMode = SizeMode.Expand } );
+			CreateItemRows( nonSample.Where( x => x.Pinned ), LocalProjectLayout.AddColumn() );
 		}
 
-		//
-		// Filter everything
-		//
-		var filter = Filter?.ToLower();
-		if ( !string.IsNullOrEmpty( filter ) )
+		if ( nonSample.Any( x => !x.Pinned ) )
 		{
-			bool ContainsFilter( string str ) => str.ToLower().Contains( filter );
-			bool PackageContainsFilter( Package x ) => ContainsFilter( x.Title ) || ContainsFilter( string.Join( " ", x.Tags ) ) || ContainsFilter( x.Org.Title ) || ContainsFilter( x.Org.Ident );
-
-			projects = projects.Where( x => PackageContainsFilter( x.Package ) ).ToList();
+			var l = LocalProjectLayout.Add( new Label.Subtitle( "Poggers Projects" ) { ContentMargins = 8, VerticalSizeMode = SizeMode.Expand } );
+			CreateItemRows( nonSample.Where( x => !x.Pinned ), LocalProjectLayout.AddColumn() );
 		}
-
-
-		//
-		// Create UI
-		//
-
-		{
-			LocalProjectLayout.Clear( true );
-			LocalProjectLayout.Margin = new Sandbox.UI.Margin( 16, 0, 16, 16 );
-
-			var nonSample = projects.Where( x => !sampleProjects.Any( y => x.ConfigFilePath == y.ConfigFilePath ) );
-			if ( nonSample.Any( x => x.Pinned ) )
-			{
-				var l = LocalProjectLayout.Add( new Label.Subtitle( "Pinned Projects" ) { ContentMargins = 8, VerticalSizeMode = SizeMode.Expand } );
-				CreateItemRows( nonSample.Where( x => x.Pinned ), LocalProjectLayout.AddColumn() );
-			}
-
-			if ( nonSample.Any( x => !x.Pinned ) )
-			{
-				var l = LocalProjectLayout.Add( new Label.Subtitle( "Local Projects" ) { ContentMargins = 8, VerticalSizeMode = SizeMode.Expand } );
-				CreateItemRows( nonSample.Where( x => !x.Pinned ), LocalProjectLayout.AddColumn() );
-			}
-
-			// Sample Projects
-			{
-				var l = LocalProjectLayout.Add( new Label.Subtitle( "Sample Projects" ) { ContentMargins = 8, VerticalSizeMode = SizeMode.Expand } );
-				CreateItemRows( sampleProjects, LocalProjectLayout.AddColumn() );
-			}
-		}
-
 	}
 
 	ContextMenu popup;
@@ -262,10 +155,6 @@ public class HomeWidget : Widget
 		popup.Layout = Layout.Column();
 		popup.Layout.Margin = 8;
 		popup.Size = new Vector2( 160, 30 );
-
-		popup.AddOption( "Most Recent", "calendar_month", () => Sort = SortMethod.Date );
-		popup.AddOption( "Name", "sort_by_alpha", () => Sort = SortMethod.Name );
-		popup.AddOption( "Organization", "groups", () => Sort = SortMethod.Org );
 
 		popup.Position = ScreenRect.TopLeft + new Vector2( 16, 48 );
 		popup.Show();

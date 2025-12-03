@@ -31,7 +31,7 @@ public class ProjectCreator : Dialog
 		Window.MinimumSize = Window.Size;
 		Window.SetModal( true, true );
 
-		Window.Title = "waiting...";
+		Window.Title = "make something beautiful";
 		Window.SetWindowIcon( "sports_esports" );
 
 		Layout = Layout.Row();

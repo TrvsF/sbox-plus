@@ -82,20 +82,25 @@ internal sealed class SteamRichPresenceSystem : IRichPresenceSystem
 			SetValue( "steam_player_group", null );
 			SetValue( "steam_player_group_size", null );
 		}
+		
+		//if ( IGameInstance.Current.Package is Package gamePackage )
+		//{
+		//	SetValue( "steam_display", "#StatusGame" );
+		//	SetValue( "gametitle", gamePackage.Title );
+		//	SetValue( "map", "" );
+		//	SetValue( "gamename", Application.GameIdent );
+		//}
+		//else
+		//{
+		//	SetValue( "steam_display", "#StatusGame" );
+		//	SetValue( "gametitle", "Secret Game" );
+		//	SetValue( "map", "" );
+		//	SetValue( "gamename", Application.GameIdent );
+		//}
 
-		if ( IGameInstance.Current.Package is Package gamePackage )
-		{
-			SetValue( "steam_display", "#StatusGame" );
-			SetValue( "gametitle", gamePackage.Title );
-			SetValue( "map", "" );
-			SetValue( "gamename", Application.GameIdent );
-		}
-		else
-		{
-			SetValue( "steam_display", "#StatusGame" );
-			SetValue( "gametitle", "Secret Game" );
-			SetValue( "map", "" );
-			SetValue( "gamename", Application.GameIdent );
-		}
+		SetValue( "steam_display", "#StatusGame" );
+		SetValue( "gametitle", "ℒᵒᵛᵉᵧₒᵤ(°▽°๑)" );
+		SetValue( "map", "" );
+		SetValue( "gamename", Application.GameIdent );
 	}
 }

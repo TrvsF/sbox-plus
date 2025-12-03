@@ -45,52 +45,52 @@ public partial class StartupWindow : BaseWindow
 	{
 		Layout = Layout.Row();
 
-		//
-		// Sidebar
-		//
-		{
-			var sidebar = Layout.Add( new SidebarWidget( this ), 1 );
+		////
+		//// Sidebar
+		////
+		//{
+		//	var sidebar = Layout.Add( new SidebarWidget( this ), 1 );
 
-			{
-				var heading = sidebar.Add( new Widget( this ) { FixedHeight = 32 } );
-				heading.Layout = Layout.Row();
+		//	{
+		//		var heading = sidebar.Add( new Widget( this ) { FixedHeight = 32 } );
+		//		heading.Layout = Layout.Row();
 
-				var headingRow = heading.Layout;
-				headingRow.Add( new LogoWidget( this ) );
-			}
+		//		var headingRow = heading.Layout;
+		//		headingRow.Add( new LogoWidget( this ) );
+		//	}
 
-			sidebar.AddSpacer();
+		//	sidebar.AddSpacer();
 
-			//
-			// Links
-			//
-			{
-				sidebar.Add( new SidebarButton( "Documentation", "school", "https://sbox.game/dev/doc/" ) );
-				sidebar.Add( new SidebarButton( $"Open {Global.BackendTitle}", "celebration", Global.BackendUrl ) );
-				sidebar.Add( new SidebarButton( "API Reference", "code", $"{Global.BackendUrl}/api" ) );
-			}
+		//	//
+		//	// Links
+		//	//
+		//	{
+		//		sidebar.Add( new SidebarButton( "Documentation", "school", "https://sbox.game/dev/doc/" ) );
+		//		sidebar.Add( new SidebarButton( $"Open {Global.BackendTitle}", "celebration", Global.BackendUrl ) );
+		//		sidebar.Add( new SidebarButton( "API Reference", "code", $"{Global.BackendUrl}/api" ) );
+		//	}
 
-			sidebar.AddSpacer();
+		//	sidebar.AddSpacer();
 
-			//
-			// Development
-			//
-			{
-				var gameFolder = Environment.CurrentDirectory;
+		//	//
+		//	// Development
+		//	//
+		//	{
+		//		var gameFolder = Environment.CurrentDirectory;
 
-				sidebar.Add( new SidebarButton( "Engine Folder", "folder", gameFolder ) { IsExternal = false } );
-				sidebar.Add( new SidebarButton( "Logs", "density_small", $"{gameFolder}/logs" ) { IsExternal = false } );
-			}
+		//		sidebar.Add( new SidebarButton( "Engine Folder", "folder", gameFolder ) { IsExternal = false } );
+		//		sidebar.Add( new SidebarButton( "Logs", "density_small", $"{gameFolder}/logs" ) { IsExternal = false } );
+		//	}
 
-			sidebar.AddStretchCell();
+		//	sidebar.AddStretchCell();
 
-			CloseOnLaunch = sidebar.Add( new Toggle( "Close On Launch" ) );
-			CloseOnLaunch.Value = LauncherPreferences.CloseOnLaunch;
-			CloseOnLaunch.ValueChanged += ( v ) =>
-			{
-				LauncherPreferences.CloseOnLaunch = v;
-			};
-		}
+		//	CloseOnLaunch = sidebar.Add( new Toggle( "Close On Launch" ) );
+		//	CloseOnLaunch.Value = LauncherPreferences.CloseOnLaunch;
+		//	CloseOnLaunch.ValueChanged += ( v ) =>
+		//	{
+		//		LauncherPreferences.CloseOnLaunch = v;
+		//	};
+		//}
 
 		//
 		// Body
