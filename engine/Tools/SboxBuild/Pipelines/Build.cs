@@ -17,9 +17,8 @@ internal class Build
 
 		if ( isPublicSource )
 		{
-			Log.Info( "Builder thinks we can grab this version from source, this is disabled as it was failing to grab b4 (27/11/25)" );
-			// Log.Info( "Detected public source distribution; downloading public artifacts and skipping native build." );
-			// builder.AddStep( new DownloadPublicArtifacts( "Download Public Artifacts" ) );
+			Log.Info( "Detected public source distribution; downloading public artifacts and skipping native build." );
+			builder.AddStep( new DownloadPublicArtifacts( "Download Public Artifacts" ) );
 		}
 
 		// Always add interop gen
