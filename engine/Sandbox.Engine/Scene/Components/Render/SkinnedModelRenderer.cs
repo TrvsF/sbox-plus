@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Concurrent;
+
 namespace Sandbox;
 
 /// <summary>
@@ -519,8 +520,7 @@ public sealed partial class SkinnedModelRenderer : ModelRenderer, Component.Exec
 
 		return transformsChanged;
 	}
-
-	internal void MergeDescendants( Action<GameTransform> transformChangedCallback = null )
+	internal void MergeDescendants( ConcurrentQueue<GameTransform> changedTransforms = null )
 	{
 		foreach ( var child in mergeChildren )
 		{
@@ -547,9 +547,9 @@ public sealed partial class SkinnedModelRenderer : ModelRenderer, Component.Exec
 
 			if ( child.UpdateGameObjectsFromBones() )
 			{
-				if ( transformChangedCallback is not null )
+				if ( changedTransforms is not null )
 				{
-					transformChangedCallback( child.Transform );
+					changedTransforms.Enqueue( child.Transform );
 				}
 				else if ( ThreadSafe.IsMainThread )
 				{
@@ -557,8 +557,7 @@ public sealed partial class SkinnedModelRenderer : ModelRenderer, Component.Exec
 				}
 			}
 
-			// Recursively merge descendants of this child
-			child.MergeDescendants( transformChangedCallback );
+			child.MergeDescendants( changedTransforms );
 		}
 	}
 

@@ -40,7 +40,8 @@ partial class MeshSelection
 				CreateButton( "Set Origin To Pivot", "gps_fixed", "mesh.set-origin-to-pivot", SetOriginToPivot, _meshes.Length > 0, grid );
 				CreateButton( "Center Origin", "center_focus_strong", "mesh.center-origin", CenterOrigin, _meshes.Length > 0, grid );
 				CreateButton( "Merge Meshes", "join_full", "mesh.merge-meshes", MergeMeshes, _meshes.Length > 1, grid );
-				CreateButton( "Bake Scale", "straighten", "mesh.bake-scale", BakeScale, _meshes.Length > 0, grid );
+				CreateButton( "Bake Scale", "straighten", null, BakeScale, _meshes.Length > 0, grid );
+				CreateButton( "Save To Model", "save", null, SaveToModel, _meshes.Length > 0, grid );
 
 				grid.AddStretchCell();
 
@@ -63,7 +64,28 @@ partial class MeshSelection
 				group.Add( grid );
 			}
 
+			{
+				var group = AddGroup( "Tools" );
+
+				var grid = Layout.Row();
+				grid.Spacing = 4;
+
+				CreateButton( "Clipping Tool", "content_cut", "mesh.open-clipping-tool", OpenClippingTool, _meshes.Length > 0, grid );
+
+				grid.AddStretchCell();
+
+				group.Add( grid );
+			}
+
 			Layout.AddStretchCell();
+		}
+
+		[Shortcut( "mesh.open-clipping-tool", "C", typeof( SceneDock ) )]
+		void OpenClippingTool()
+		{
+			var tool = new ClipTool();
+			tool.Manager = _tool.Tool.Manager;
+			_tool.Tool.CurrentTool = tool;
 		}
 
 		[Shortcut( "mesh.previous-pivot", "N+MWheelDn", typeof( SceneDock ) )]
@@ -205,6 +227,17 @@ partial class MeshSelection
 			meshComponent.WorldScale = 1.0f;
 			meshComponent.Mesh.Scale( scale );
 			meshComponent.RebuildMesh();
+		}
+
+		void SaveToModel()
+		{
+			if ( _meshes.Length == 0 ) return;
+
+			var targetPath = EditorUtility.SaveFileDialog( "Create Model..", "vmdl", "" );
+			if ( targetPath is null ) return;
+
+			var meshes = _meshes.Select( x => x.Mesh ).ToArray();
+			EditorUtility.CreateModelFromPolygonMeshes( meshes, targetPath );
 		}
 	}
 }

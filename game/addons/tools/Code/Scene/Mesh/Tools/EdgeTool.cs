@@ -85,8 +85,7 @@ public sealed partial class EdgeTool( MeshTool tool ) : SelectionTool<MeshEdge>(
 
 	public override Rotation CalculateSelectionBasis()
 	{
-		if ( Gizmo.Settings.GlobalSpace )
-			return Rotation.Identity;
+		if ( GlobalSpace ) return Rotation.Identity;
 
 		var edge = Selection.OfType<MeshEdge>().FirstOrDefault();
 		if ( edge.IsValid() )
@@ -305,5 +304,42 @@ public sealed partial class EdgeTool( MeshTool tool ) : SelectionTool<MeshEdge>(
 		CalculateSelectionVertices();
 
 		return connectingFaces;
+	}
+
+	protected override IEnumerable<MeshEdge> GetConnectedSelectionElements()
+	{
+		var unique = new HashSet<MeshEdge>();
+
+		foreach ( var component in Selection.OfType<GameObject>()
+			.Select( x => x.GetComponent<MeshComponent>() )
+			.Where( x => x.IsValid() ) )
+		{
+			foreach ( var edge in component.Mesh.HalfEdgeHandles )
+			{
+				unique.Add( new MeshEdge( component, edge ) );
+			}
+		}
+
+		foreach ( var face in Selection.OfType<MeshFace>() )
+		{
+			face.Component.Mesh.GetEdgesConnectedToFace( face.Handle, out var edges );
+
+			foreach ( var edge in edges )
+			{
+				unique.Add( new MeshEdge( face.Component, edge ) );
+			}
+		}
+
+		foreach ( var vertex in Selection.OfType<MeshVertex>() )
+		{
+			vertex.Component.Mesh.GetEdgesConnectedToVertex( vertex.Handle, out var edges );
+
+			foreach ( var edge in edges )
+			{
+				unique.Add( new MeshEdge( vertex.Component, edge ) );
+			}
+		}
+
+		return unique;
 	}
 }
