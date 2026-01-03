@@ -3183,7 +3183,7 @@ public sealed partial class PolygonMesh : IJsonConvert
 			var bounds = BBox.FromPoints( vertices.Select( x => x.position ) );
 			var material = submesh.Material ?? DefaultMaterial;
 			var mesh = new Mesh( material );
-			mesh.CreateVertexBuffer( vertices.Count, SimpleVertex.Layout, vertices );
+			mesh.CreateVertexBuffer( vertices.Count, vertices );
 			mesh.CreateIndexBuffer( indices.Count, indices );
 			mesh.Bounds = bounds;
 
