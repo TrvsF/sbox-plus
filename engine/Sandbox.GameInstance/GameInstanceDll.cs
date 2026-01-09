@@ -282,8 +282,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 		//
 		// Strip the SERVER define from the archive's DefineConstants
 		//
-		var parts = config.DefineConstants.Split( ';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries ).ToList();
-		parts.RemoveAll( x => x.Equals( "SERVER", StringComparison.OrdinalIgnoreCase ) );
+		var parts = config.GetPreprocessorSymbols();
+		parts.RemoveWhere( x => x.Equals( "SERVER", StringComparison.OrdinalIgnoreCase ) );
 
 		var newConfig = config with { DefineConstants = string.Join( ";", parts ) };
 
