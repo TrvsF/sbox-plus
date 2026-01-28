@@ -185,7 +185,7 @@ public partial class ProjectRow : ItemRow
 			Paint.Pen = Theme.Green.WithAlpha( inout );
 
 			textRect.Left += -600 + delta * 600.0f;
-			Paint.DrawText( textRect, "LAUNCHING LAUNCHING LAUNCHING LUNCHING LAUNCHING LAUNCHING LAUNCHING LAUNCHING LAUNCHING LAUNCHING LAUNCHING", TextFlag.LeftCenter );
+			Paint.DrawText( textRect, "I LOVE YOU I LOVE YOU I LOVE YOU I LOVE YOU I LOVE YOU I LOVE YOU", TextFlag.LeftCenter );
 
 			Update();
 			return;

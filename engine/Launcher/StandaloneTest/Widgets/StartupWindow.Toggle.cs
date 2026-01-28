@@ -6,10 +6,7 @@ public partial class StartupWindow
 {
 	private class Toggle : Widget
 	{
-		public Action<bool> ValueChanged;
-
 		private bool _value;
-
 		public bool Value
 		{
 			get => _value;
@@ -20,7 +17,6 @@ public partial class StartupWindow
 
 				_value = value;
 				Update();
-				ValueChanged?.Invoke( _value );
 			}
 		}
 

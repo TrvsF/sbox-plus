@@ -11,7 +11,6 @@ public partial class Dialog : Widget
 	{
 		var modal = new TextDialog();
 		modal.Window.SetWindowIcon( "folder" );
-		modal.Window.Title = "Select a folder";
 		modal.Window.Size = new Vector2( 400, 100 );
 		modal.Label.Text = question;
 		modal.OkayButton.Text = okay;
@@ -30,7 +29,6 @@ public partial class Dialog : Widget
 	{
 		var modal = new TextDialog();
 		modal.Window.SetWindowIcon( "description" );
-		modal.Window.Title = "Select a file";
 		modal.Window.Size = new Vector2( 400, 100 );
 		modal.Label.Text = question;
 		modal.OkayButton.Text = okay;
@@ -49,7 +47,6 @@ public partial class Dialog : Widget
 	{
 		var modal = new TextDialog();
 		modal.Window.SetWindowIcon( "question_mark" );
-		modal.Window.Title = title;
 		modal.Window.Size = new Vector2( 400, 100 );
 		modal.Label.Text = question;
 		modal.OkayButton.Text = okay;
@@ -70,7 +67,6 @@ public partial class Dialog : Widget
 	{
 		var modal = new TextDialog( false );
 		modal.Window.SetWindowIcon( "question_mark" );
-		modal.Window.Title = title;
 		modal.Window.Size = new Vector2( 400, 100 );
 		modal.Label.Text = question;
 		modal.OkayButton.Text = okay;
@@ -86,7 +82,6 @@ public partial class Dialog : Widget
 	{
 		var modal = new TextDialog( false );
 		modal.Window.SetWindowIcon( "question_mark" );
-		modal.Window.Title = title;
 		modal.Window.Size = new Vector2( 400, 100 );
 		modal.Label.Text = question;
 		modal.OkayButton.Text = okay;

@@ -14,7 +14,7 @@
 
 s&box is a modern game engine, built on Valve's Source 2 and the latest .NET technology, it provides a modern intuitive editor for creating games.
 
-![s&box editor](https://files.facepunch.com/matt/1b2211b1/sbox-dev_FoZ5NNZQTi.jpg)
+![s&box+ editor](https://files.facepunch.com/matt/1b2211b1/sbox-dev_FoZ5NNZQTi.jpg)
 
 If your goal is to create games using s&box, please start with the [getting started guide](https://sbox.game/dev/doc/about/getting-started/first-steps/).
 This repository is for building the engine from source for those who want to contribute to the development of the engine.
@@ -23,7 +23,7 @@ This repository is for building the engine from source for those who want to con
 
 ### Steam
 
-You can download and install the s&box editor directly from [Steam](https://sbox.game/give-me-that).
+You can download and install the s&box+ editor directly from [Steam](https://sbox.game/give-me-that).
 
 ### Compiling from Source
 

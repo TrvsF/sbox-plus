@@ -224,7 +224,7 @@ internal class DeltaSnapshotSystem
 					dataToSend ??= SnapshotData.Pool.Rent();
 					dataToSend[slot] = value;
 
-					state.AddPredicted( slot, value, Time );
+					state.AddPredicted( entry, Time );
 
 					entry.Connections?.Add( connectionId );
 				}
@@ -242,7 +242,7 @@ internal class DeltaSnapshotSystem
 					var slot = entry.Slot;
 					var value = entry.Value;
 
-					state.AddPredicted( slot, value, Time );
+					state.AddPredicted( entry, Time );
 					dataToSend[slot] = value;
 
 					entry.Connections?.Add( connectionId );
@@ -344,7 +344,7 @@ internal class DeltaSnapshotSystem
 				snapshotData ??= SnapshotData.Pool.Rent();
 				snapshotData[slot] = value;
 
-				state.AddPredicted( slot, value, Time );
+				state.AddPredicted( entry, Time );
 
 				entry.Connections?.Add( connectionId );
 			}
@@ -359,7 +359,7 @@ internal class DeltaSnapshotSystem
 				var slot = entry.Slot;
 				var value = entry.Value;
 
-				state.AddPredicted( slot, value, Time );
+				state.AddPredicted( entry, Time );
 				snapshotData[slot] = value;
 
 				entry.Connections?.Add( connectionId );
@@ -448,10 +448,7 @@ internal class DeltaSnapshotSystem
 					if ( (!entry.Connections?.Contains( connectionId ) ?? false) )
 						continue;
 
-					var slot = entry.Slot;
-					var value = entry.Value;
-
-					state.Update( slot, snapshot.SnapshotId, value );
+					state.Update( entry, snapshot.SnapshotId );
 				}
 			}
 			else
@@ -516,10 +513,7 @@ internal class DeltaSnapshotSystem
 			{
 				foreach ( var entry in snapshot.Entries )
 				{
-					var slot = entry.Slot;
-					var value = entry.Value;
-
-					state.Update( slot, snapshotId, value );
+					state.Update( entry, snapshotId );
 				}
 			}
 			else
@@ -584,10 +578,7 @@ internal class DeltaSnapshotSystem
 					if ( (!entry.Connections?.Contains( connectionId ) ?? false) )
 						continue;
 
-					var slot = entry.Slot;
-					var value = entry.Value;
-
-					state.Update( slot, snapshot.SnapshotId, value );
+					state.Update( entry, snapshot.SnapshotId );
 				}
 			}
 			else
@@ -634,16 +625,14 @@ internal class DeltaSnapshotSystem
 
 		var snapshot = DeltaSnapshot.From( currentData );
 		snapshot.SnapshotId = snapshotId;
+		snapshot.Version = version;
 		snapshot.ObjectId = objectId;
 
 		if ( connectionData.RemoteSnapshotStates.TryGetValue( objectId, out var state ) )
 		{
 			foreach ( var entry in snapshot.Entries )
 			{
-				var slot = entry.Slot;
-				var value = entry.Value;
-
-				state.Update( slot, snapshot.SnapshotId, value );
+				state.Update( entry, snapshot.SnapshotId );
 			}
 		}
 		else
@@ -731,6 +720,8 @@ internal class DeltaSnapshotSystem
 			var localSnapshotState = nwo.WriteSnapshotState();
 			nwo.SendNetworkUpdate();
 
+			ClearRemovedSlots( localSnapshotState );
+
 			var allConnectionsAreUpdated = true;
 
 			foreach ( var connection in connections )
@@ -799,6 +790,8 @@ internal class DeltaSnapshotSystem
 		var localSnapshotState = snapshotter.WriteSnapshotState();
 		snapshotter.SendNetworkUpdate();
 
+		ClearRemovedSlots( localSnapshotState );
+
 		if ( localSnapshotState.Size == 0 )
 			return;
 
@@ -815,6 +808,28 @@ internal class DeltaSnapshotSystem
 		}
 
 		clonedSnapshot.Release();
+	}
+
+	/// <summary>
+	/// Clear all <see cref="RemoteSnapshotState"/> of removed slots from a <see cref="LocalSnapshotState"/>.
+	/// </summary>
+	void ClearRemovedSlots( LocalSnapshotState localState )
+	{
+		if ( localState.RemovedSlots.Count == 0 )
+			return;
+
+		foreach ( var connection in Connections.Values )
+		{
+			if ( !connection.RemoteSnapshotStates.TryGetValue( localState.ObjectId, out var state ) )
+				continue;
+
+			foreach ( var slot in localState.RemovedSlots )
+			{
+				state.Remove( slot );
+			}
+		}
+
+		localState.RemovedSlots.Clear();
 	}
 
 	/// <summary>

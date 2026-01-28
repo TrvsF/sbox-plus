@@ -1,4 +1,6 @@
-﻿namespace Editor.Wizards;
+﻿using System.IO;
+
+namespace Editor.Wizards;
 
 partial class PublishWizard
 {

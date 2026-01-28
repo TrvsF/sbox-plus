@@ -101,14 +101,20 @@ public partial class Scene : GameObject
 
 			if ( sceneFile.SceneProperties is not null )
 			{
-				DeserializeProperties( sceneFile.SceneProperties );
+				DeserializeProperties( sceneFile.SceneProperties, options.IsSystemScene );
 			}
 
 			//
 			// Let ISceneLoadingEvents add their own tasks
 			//
-			List<Task> sceneLoadingTasks = new();
-			RunEvent<ISceneLoadingEvents>( x => sceneLoadingTasks.Add( x.OnLoad( this, options ) ) );
+			List<LoadingContext> sceneLoadingTasks = new();
+			RunEvent<ISceneLoadingEvents>( x =>
+			{
+				var context = new LoadingContext();
+				context.Task = x.OnLoad( this, options, context );
+
+				sceneLoadingTasks.Add( context );
+			} );
 
 			foreach ( var task in sceneLoadingTasks )
 			{
@@ -217,8 +223,6 @@ public partial class Scene : GameObject
 		}
 	}
 
-	public override void Deserialize( JsonObject node ) => Deserialize( node, new DeserializeOptions() );
-
 	internal JsonObject SerializeProperties()
 	{
 		var jso = new JsonObject();
@@ -257,7 +261,7 @@ public partial class Scene : GameObject
 		return metadata;
 	}
 
-	void DeserializeProperties( JsonObject data )
+	void DeserializeProperties( JsonObject data, bool isSystemScene = false )
 	{
 		var sceneType = Game.TypeLibrary.GetType<Scene>();
 		Assert.NotNull( sceneType, "Scene type is inaccessible!" );
@@ -281,8 +285,13 @@ public partial class Scene : GameObject
 			}
 		}
 
-		NavMesh.Deserialize( data["NavMesh"] as JsonObject );
-
+		//
+		// We don't want navmesh to be overwritten by system scene loads
+		//
+		if ( !isSystemScene )
+		{
+			NavMesh.Deserialize( data["NavMesh"] as JsonObject );
+		}
 	}
 
 

@@ -21,7 +21,7 @@ public class EditorAppSystem : AppSystem
 
 		var createInfo = new AppSystemCreateInfo()
 		{
-			WindowTitle = "s&box editor",
+			WindowTitle = "s&box+ editor",
 			Flags = AppSystemFlags.IsGameApp | AppSystemFlags.IsEditor
 		};
 

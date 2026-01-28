@@ -7,7 +7,7 @@ namespace Sandbox;
 
 public partial class GameObject
 {
-	internal const int GameObjectVersion = 1;
+	internal const int GameObjectVersion = 2;
 
 	/// <summary>
 	/// Helper variable for editor refreshes during deserialization.
@@ -82,6 +82,8 @@ public partial class GameObject
 		}
 	}
 
+	private static readonly SerializeOptions _defaultSerializeOptions = new();
+
 	public struct DeserializeOptions
 	{
 		/// <summary>
@@ -111,13 +113,15 @@ public partial class GameObject
 		public Transform? TransformOverride { get; set; }
 	}
 
+	private static readonly DeserializeOptions _defaultDeserializeOptions = new();
+
 	/// <summary>
 	/// Returns either a full JsonObject with all the GameObjects data,
 	/// or if this GameObject is a prefab instance, it will return an object containing the patch/diff between instance and prefab.
 	/// </summary>
 	public virtual JsonObject Serialize( SerializeOptions options = null )
 	{
-		options ??= new SerializeOptions();
+		options ??= _defaultSerializeOptions;
 
 		if ( !options.ShouldSave( this ) ) return null;
 
@@ -212,7 +216,7 @@ public partial class GameObject
 		json.Add( JsonKeys.Tags, string.Join( ",", Tags.TryGetAll( false ) ) );
 		json.Add( JsonKeys.Enabled, Enabled );
 		json.Add( JsonKeys.NetworkMode, (int)NetworkMode );
-		json.Add( JsonKeys.NetworkInterpolation, NetworkInterpolation );
+		json.Add( JsonKeys.NetworkFlags, (int)NetworkFlags );
 		json.Add( JsonKeys.NetworkOrphaned, (int)NetworkOrphaned );
 		json.Add( JsonKeys.AlwaysTransmit, AlwaysTransmit );
 		json.Add( JsonKeys.OwnerTransfer, (int)OwnerTransfer );
@@ -302,8 +306,7 @@ public partial class GameObject
 		return json;
 	}
 
-
-	public virtual void Deserialize( JsonObject node ) => Deserialize( node, new DeserializeOptions() );
+	public virtual void Deserialize( JsonObject node ) => Deserialize( node, _defaultDeserializeOptions );
 
 	public virtual void Deserialize( JsonObject node, DeserializeOptions options )
 	{
@@ -419,7 +422,7 @@ public partial class GameObject
 		if ( node.TryGetPropertyValue( JsonKeys.NetworkOrphaned, out propertyNode ) ) NetworkOrphaned = (NetworkOrphaned)(int)propertyNode;
 		if ( node.TryGetPropertyValue( JsonKeys.AlwaysTransmit, out propertyNode ) ) AlwaysTransmit = (bool)propertyNode;
 		if ( node.TryGetPropertyValue( JsonKeys.OwnerTransfer, out propertyNode ) ) OwnerTransfer = (OwnerTransfer)(int)propertyNode;
-		if ( node.TryGetPropertyValue( JsonKeys.NetworkInterpolation, out propertyNode ) ) NetworkInterpolation = (bool)propertyNode;
+		if ( node.TryGetPropertyValue( JsonKeys.NetworkFlags, out propertyNode ) ) NetworkFlags = (NetworkFlags)(int)propertyNode;
 
 		if ( node[JsonKeys.Components] is JsonArray componentArray )
 		{
@@ -986,10 +989,11 @@ public partial class GameObject
 		internal const string Tags = "Tags";
 		internal const string Version = "__version";
 		internal const string NetworkMode = "NetworkMode";
-		internal const string NetworkInterpolation = "NetworkInterpolation";
+		internal const string NetworkFlags = "NetworkFlags";
 		internal const string NetworkOrphaned = "NetworkOrphaned";
 		internal const string AlwaysTransmit = "NetworkTransmit";
 		internal const string OwnerTransfer = "OwnerTransfer";
+		internal const string NetworkInterpolation = "NetworkInterpolation"; // Legacy
 
 		// Editor only keys used to influence serialization logic when performing editor actions
 		internal const string EditorPrefabInstanceNestedSource = "__EditorPrefabNestedInstance";
