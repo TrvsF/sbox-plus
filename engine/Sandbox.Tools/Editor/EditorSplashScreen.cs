@@ -17,7 +17,13 @@ namespace Editor
 			Singleton = this;
 			DeleteOnClose = true;
 
+<<<<<<< HEAD
 			BackgroundImage = LoadSplashImage();
+=======
+			SetWindowIcon( Pixmap.FromFile( "window_icon.png" ) );
+			WindowTitle = "are we dreaming?";
+			BackgroundImage = Pixmap.FromFile( "splash_screen.png" );
+>>>>>>> 5e782d0cfaa2ad7c84894e1467629600f19deec1
 
 			// load any saved geometry
 			string geometryCookie = EditorCookie.GetString( "splash.geometry", null );
