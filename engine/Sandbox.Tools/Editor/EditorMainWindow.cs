@@ -507,12 +507,8 @@ public class EditorMainWindow : DockWindow
 
 	public void UpdateEditorTitle( string title )
 	{
-<<<<<<< HEAD
-		Title = $"{title} - s&box editor{(Global.IsApiConnected ? "" : " - offline")}";
-=======
-		var projectName = Project.Current?.Config.Title ?? "No Project";
+		// Title = $"{title} - s&box editor{(Global.IsApiConnected ? "" : " - offline")}";
 		Title = $"٩꒰ʘʚʘ๑꒱۶";
->>>>>>> 5e782d0cfaa2ad7c84894e1467629600f19deec1
 	}
 
 	void BuildRecentScenes()

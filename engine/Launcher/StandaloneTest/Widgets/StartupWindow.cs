@@ -49,35 +49,20 @@ public partial class StartupWindow : Window
 	{
 		Canvas.Layout = Layout.Row();
 
-<<<<<<< HEAD
 		//
 		// Sidebar
 		//
-		{
-			var sidebar = Canvas.Layout.Add( new SidebarWidget( Canvas ), 1 );
-
-			{
-				var heading = sidebar.Add( new Widget( Canvas ) { FixedHeight = 32 } );
-				heading.Layout = Layout.Row();
-
-				var headingRow = heading.Layout;
-				headingRow.Add( new LogoWidget( Canvas ) );
-			}
-=======
-		////
-		//// Sidebar
-		////
 		//{
-		//	var sidebar = Layout.Add( new SidebarWidget( this ), 1 );
+		//	var sidebar = Canvas.Layout.Add( new SidebarWidget( Canvas ), 1 );
 
 		//	{
-		//		var heading = sidebar.Add( new Widget( this ) { FixedHeight = 32 } );
+		//		var heading = sidebar.Add( new Widget( Canvas ) { FixedHeight = 32 } );
 		//		heading.Layout = Layout.Row();
 
 		//		var headingRow = heading.Layout;
-		//		headingRow.Add( new LogoWidget( this ) );
+		//		headingRow.Add( new LogoWidget( Canvas ) );
 		//	}
->>>>>>> 5e782d0cfaa2ad7c84894e1467629600f19deec1
+		//}
 
 		//	sidebar.AddSpacer();
 
