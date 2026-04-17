@@ -1,29 +1,20 @@
-@using MenuProject.MenuUI.Layout.MenuHeader
 @using Sandbox.UI;
 @using Sandbox.UI.Navigation;
 @using Sandbox;
 @using System;
 @using Menu;
-@using MenuProject.Social;
-@using MenuProject.Footer;
 @inherits PanelComponent
 
 <div class="mainmenu">
-
-    <NavigationHost @ref="Navigator" DefaultUrl="/front" class="navigator"> 
+    
+    <NavigationHost DefaultUrl="/home" @ref="Navigator">
         <ChildContent>
 
-            <div class="mainmenu-header">
-                <MenuHeader />
-            </div>
+            <Navbar />
 
-            <div class="mainmenu-content">
-                <div id="MenuContent" slot="navigator-canvas"></div>
-            </div>
+            <div class="navigator-canvas" slot="navigator-canvas"></div>
 
-            <div class="mainmenu-footer">
-                <MenuFooter></MenuFooter>
-            </div>
+            <Footer />
             
         </ChildContent>
     </NavigationHost>
@@ -31,13 +22,8 @@
 
 @code
 {
-    public static MainMenu Instance { get; private set; }
+    [Property] public GameObject Background { get; set; }
     public NavigationHost Navigator { get; protected set; }
-
-    public MainMenu()
-    {
-        Instance = this;
-    }
 
     override protected void OnEnabled()
     {
@@ -54,6 +40,9 @@
 
         if ( citizen.IsValid() )
             citizen.Enabled = !clothing.PrefersHuman;
+
+        // Fetch resolutions now so opening the settings modal doesn't stutter later.
+        MenuProject.Settings.VideoSettings.FetchResolutions();
     }
 
     override protected void OnDisabled()
@@ -103,6 +92,9 @@
 	override protected void OnUpdate()
     {
         SetClass("is-vr", Application.IsVR);
-		SetClass("has-streamer-account", Sandbox.MenuEngine.Account.HasLinkedStreamerServices);
+        SetClass("has-streamer-account", Sandbox.MenuEngine.Account.HasLinkedStreamerServices);
+
+        var isInGame = Application.IsEditor ? false : Game.InGame;
+        Background.Enabled = Navigator?.CurrentUrl == "/home" && !isInGame;
 	}
 }
