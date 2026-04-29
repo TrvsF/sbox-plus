@@ -25,19 +25,19 @@ public class HomeWidget : Widget
 			menuRow.Spacing = 4;
 			menuRow.Margin = new Sandbox.UI.Margin( 16, 16, 16, 0 );
 
-			SortButton = menuRow.Add( new IconButton( "sort_by_alpha" ) { OnClick = OpenPopup, ToolTip = "Sort by" } );
-			Sort = _sort;
+			//SortButton = menuRow.Add( new IconButton( "sort_by_alpha" ) { OnClick = OpenPopup, ToolTip = "Sort by" } );
+			//Sort = _sort;
 
-			{
-				var search = menuRow.Add( new LineEdit() { PlaceholderText = "⌕  Search" }, 1 );
-				search.SetStyles( $"border: 1px solid {Theme.ButtonBackground.Hex};" );
-				search.TextChanged += _ =>
-				{
-					Filter = search.Value;
-					search.Focus();
-				};
-				search.Blur();
-			}
+			//{
+			//	var search = menuRow.Add( new LineEdit() { PlaceholderText = "⌕  Search" }, 1 );
+			//	search.SetStyles( $"border: 1px solid {Theme.ButtonBackground.Hex};" );
+			//	search.TextChanged += _ =>
+			//	{
+			//		Filter = search.Value;
+			//		search.Focus();
+			//	};
+			//	search.Blur();
+			//}
 
 			//menuRow.Add( new IconButton( "cloud_download" )
 			//{
