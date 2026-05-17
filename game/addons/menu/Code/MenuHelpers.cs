@@ -1,16 +1,24 @@
 ﻿using Sandbox;
 using Sandbox.DataModel;
+using Sandbox.Diagnostics;
 using Sandbox.Modals;
-using Sandbox.Network;
 
 public static class MenuHelpers
 {
 	/// <summary>
+	/// Do we have authority to start or join games.
+	/// If we're in a party, only the party owner can start or join games.
+	/// </summary>
+	public static bool HasAuthority => PartyRoom.Current?.Owner.IsMe ?? true;
+
+	/// <summary>
 	/// General-purpose method to play a game package. Handles quickplay, dedicated servers,
 	/// create-game modal, VR-only checks, default map fetching, and direct launch.
 	/// </summary>
-	public static async void PlayGame( Package package )
+	public static async void PlayGame( Package package, Package mapPackage = null )
 	{
+		Assert.True( HasAuthority, "You do not have authority to start a game, only the party owner can do that." );
+
 		// VR-only game but not in VR
 		var isVrOnly = package.GetMeta<ControlModeSettings>( "ControlModes" )?.IsVROnly ?? false;
 		if ( isVrOnly && !Application.IsVR )
@@ -26,13 +34,13 @@ public static class MenuHelpers
 
 			if ( await MenuUtility.TryJoinLobby( package.FullIdent ) )
 				return;
+
+			Log.Info( $"Couldn't join a lobby - making a game" );
+			LoadingScreen.IsVisible = false;
 		}
-
-		MenuUtility.CloseAllModals();
-
-		// Dedicated server only: show server list
-		if ( launchMode == "dedicatedserveronly" )
+		else if ( launchMode == "dedicatedserveronly" )
 		{
+			// Dedicated server only: show server list
 			Game.Overlay.ShowServerList( new ServerListConfig( package.FullIdent ) );
 			return;
 		}
@@ -42,7 +50,7 @@ public static class MenuHelpers
 		{
 			Game.Overlay.CreateGame( new CreateGameOptions( package, x =>
 			{
-				if ( x.MaxPlayers > 1 ) LaunchArguments.MaxPlayers = x.MaxPlayers;
+				if ( x.MaxPlayers > 0 ) LaunchArguments.MaxPlayers = x.MaxPlayers;
 
 				if ( !string.IsNullOrEmpty( x.ServerName ) )
 					LaunchArguments.ServerName = x.ServerName;
@@ -58,26 +66,30 @@ public static class MenuHelpers
 		}
 
 		// Direct launch
+		MenuUtility.CloseAllModals();
 		LoadingScreen.IsVisible = true;
 		LoadingScreen.Title = "Loading..";
 		LoadingScreen.Subtitle = "";
 
-		// Fetch the default map if one is configured
-		var defaultMap = package.GetValue( "DefaultMap", "" );
-		if ( !string.IsNullOrWhiteSpace( defaultMap ) )
+		if ( mapPackage is null )
 		{
-			var mapPackage = await Package.FetchAsync( defaultMap, false );
-			if ( mapPackage is not null )
+			// Fetch the default map if one is configured
+			var defaultMap = package.GetValue( "DefaultMap", "" );
+			if ( !string.IsNullOrWhiteSpace( defaultMap ) )
 			{
-				Log.Info( $"Default map configured ({defaultMap}), launching game with map." );
-				MenuUtility.OpenGameWithMap( package.FullIdent, mapPackage.FullIdent );
-				return;
+				Log.Info( $"DefaultMap configured, launching game with map: {defaultMap}" );
+				mapPackage = await Package.FetchAsync( defaultMap, false );
 			}
 		}
 
-		Log.Info( "No default map configured, launching game directly: " + package.FullIdent );
-
-		MenuUtility.OpenGame( package.FullIdent, true );
+		if ( mapPackage is not null )
+		{
+			MenuUtility.OpenGameWithMap( package.FullIdent, mapPackage.FullIdent );
+		}
+		else
+		{
+			MenuUtility.OpenGame( package.FullIdent, true );
+		}
 	}
 
 	static bool ShouldUseCreateGameModal( Package package )
@@ -105,13 +117,13 @@ public static class MenuHelpers
 			menu.AddOption( "person_add", "Send Friend Request", friend.OpenAddFriendOverlay );
 		}
 
-		Friend Me = new Friend( Game.SteamId );
-		string ConnectString = friend.GetRichPresence( "connect" );
-		bool IsInGame = !string.IsNullOrEmpty( ConnectString );
-		bool InSameGame = IsInGame && ConnectString == Me.GetRichPresence( "connect" );
-		bool CanJoinGame = !string.IsNullOrEmpty( ConnectString );
+		var me = new Friend( Game.SteamId );
+		var connectString = friend.GetRichPresence( "connect" );
+		var isInGame = !string.IsNullOrEmpty( connectString );
+		var inSameGame = isInGame && connectString == me.GetRichPresence( "connect" );
+		var canJoinGame = !string.IsNullOrEmpty( connectString );
 
-		if ( CanJoinGame && !InSameGame )
+		if ( canJoinGame && !inSameGame )
 		{
 			menu.AddOption( "sports_esports", "Join Game", () => MenuUtility.JoinFriendGame( friend ) );
 		}
@@ -156,7 +168,8 @@ public static class MenuHelpers
 
 		menu.AddSpacer();
 		menu.AddOption( "corporate_fare", $"View Creator", () => Game.Overlay.ShowOrganizationModal( package.Org ) );
-		menu.AddOption( "star", "Rate Game", () => Game.Overlay.ShowReviewModal( package ) );
+		menu.AddOption( "star", "Review Game", () => Game.Overlay.ShowReviewModal( package ) );
+		menu.AddOption( "flag", "Report Game", () => Game.Overlay.ShowReportModal( package.FullIdent ) );
 	}
 
 	static void OpenMapMenu( Panel source, Package package )
@@ -165,6 +178,7 @@ public static class MenuHelpers
 
 		async void OnPackageSelected( Package package )
 		{
+			Assert.True( HasAuthority, "You do not have authority to start a game, only the party owner can do that." );
 			LaunchArguments.Map = null;
 
 			var filters = new Dictionary<string, string>
@@ -191,14 +205,15 @@ public static class MenuHelpers
 			Game.Overlay.ShowServerList( new Sandbox.Modals.ServerListConfig( null, package.FullIdent ) );
 		}
 
-		menu.AddOption( "play_arrow", "Join existing session", () => OnPackageSelected( package ) );
-		menu.AddOption( "playlist_add", "Create own game", () => CreateGameWithMap( SANDBOX_IDENT, package ) );
+		if ( HasAuthority )
+		{
+			menu.AddOption( "play_arrow", "Join existing session", () => OnPackageSelected( package ) );
+			menu.AddOption( "playlist_add", "Create own game", () => CreateGameWithMap( SANDBOX_IDENT, package ) );
 
-		menu.AddSpacer();
+			menu.AddSpacer();
+		}
 
 		menu.AddOption( "list", "View servers", () => ViewGameList( package ) );
-
-		//   menu.AddOption( "folder", "Launch With Map..", OnLaunchWithMap );
 
 		menu.AddSpacer();
 		menu.AddOption( "info", $"View Map Details", () => Game.Overlay.ShowPackageModal( package.FullIdent ) );
@@ -208,6 +223,8 @@ public static class MenuHelpers
 
 	public static async void LoadMap( Package package )
 	{
+		Assert.True( HasAuthority, "You do not have authority to start a game, only the party owner can do that." );
+
 		LaunchArguments.Map = null;
 
 		var filters = new Dictionary<string, string>
@@ -231,6 +248,8 @@ public static class MenuHelpers
 
 	public static void CreateGameWithMap( string gameIdent, Package mapPackage )
 	{
+		Assert.True( HasAuthority, "You do not have authority to start a game, only the party owner can do that." );
+
 		LaunchArguments.Map = mapPackage.FullIdent;
 		MenuUtility.OpenGame( gameIdent, false );
 	}

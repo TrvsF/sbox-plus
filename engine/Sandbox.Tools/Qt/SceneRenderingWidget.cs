@@ -77,6 +77,7 @@ public class SceneRenderingWidget : Frame
 			var go = new GameObject( true, "editor_camera" );
 			go.Flags = GameObjectFlags.Hidden | GameObjectFlags.NotSaved | GameObjectFlags.EditorOnly | GameObjectFlags.Absolute;
 			var camera = go.AddComponent<CameraComponent>();
+			camera.RenderExcludeTags.Add( "hidden" );
 			camera.IsMainCamera = false;
 			camera.IsSceneEditorCamera = true;
 			return camera;
@@ -165,6 +166,11 @@ public class SceneRenderingWidget : Frame
 				PreFrame();
 				RenderScene();
 			}
+		}
+
+		if ( GameMode.IsPlayWidget( this ) )
+		{
+			CCameraRenderer.RenderOverlay( SwapChain );
 		}
 
 		g_pRenderDevice.Present( SwapChain );

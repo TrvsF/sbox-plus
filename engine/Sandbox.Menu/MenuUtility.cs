@@ -38,6 +38,12 @@ public static partial class MenuUtility
 		IMenuDll.Current?.RunEvent( "ui.skiptransitions" );
 	}
 
+	public static async Task<bool> RefreshAccountInfo()
+	{
+		await AccountInformation.Update();
+		return Api.IsConnected;
+	}
+
 	/// <summary>
 	/// If current game is active, return the package
 	/// </summary>
@@ -273,9 +279,17 @@ public static partial class MenuUtility
 	/// <summary>
 	/// Post a review for a package
 	/// </summary>
-	public static Task PostReview( string packageIdent, Sandbox.Services.Review.ReviewScore score, string content )
+	public static Task PostReview( string packageIdent, Sandbox.Services.Review.ReviewScore score, string content, Sandbox.Services.Review.PositiveTags positives, Sandbox.Services.Review.NegativeTags negatives )
 	{
-		return Sandbox.Services.Review.Post( packageIdent, score, content );
+		return Sandbox.Services.Review.Post( packageIdent, score, content, positives, negatives );
+	}
+
+	/// <summary>
+	/// Post a report for a package
+	/// </summary>
+	public static Task PostReport( string packageIdent, Sandbox.Services.Reports.Reason reason, string content )
+	{
+		return Sandbox.Services.Reports.Post( packageIdent, reason, content );
 	}
 
 	/// <summary>

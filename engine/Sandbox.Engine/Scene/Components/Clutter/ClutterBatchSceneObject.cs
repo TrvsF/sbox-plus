@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Sandbox.Rendering;
 
 namespace Sandbox.Clutter;
 
@@ -12,6 +13,8 @@ internal class ClutterBatchSceneObject : SceneCustomObject
 	/// Batches by model
 	/// </summary>
 	private readonly Dictionary<Model, ClutterModelBatch> _batches = [];
+
+	private readonly CommandList _commandList = new( "ClutterBatch" );
 
 	public ClutterBatchSceneObject( SceneWorld world ) : base( world )
 	{
@@ -41,6 +44,23 @@ internal class ClutterBatchSceneObject : SceneCustomObject
 	}
 
 	/// <summary>
+	/// Builds the command list from current batches. Must be called on the main thread
+	/// after all instances have been added.
+	/// </summary>
+	public void BuildCommandList()
+	{
+		_commandList.Reset();
+
+		foreach ( var (model, batch) in _batches )
+		{
+			if ( batch.Transforms.Count == 0 || model == null )
+				continue;
+
+			_commandList.DrawModelInstanced( model, CollectionsMarshal.AsSpan( batch.Transforms ) );
+		}
+	}
+
+	/// <summary>
 	/// Clears all batches.
 	/// </summary>
 	public void Clear()
@@ -49,6 +69,7 @@ internal class ClutterBatchSceneObject : SceneCustomObject
 			batch.Clear();
 
 		_batches.Clear();
+		_commandList.Reset();
 	}
 
 	/// <summary>
@@ -65,15 +86,6 @@ internal class ClutterBatchSceneObject : SceneCustomObject
 	/// </summary>
 	public override void RenderSceneObject()
 	{
-		if ( _batches.Count == 0 )
-			return;
-
-		foreach ( var (model, batch) in _batches )
-		{
-			if ( batch.Transforms.Count == 0 || model == null )
-				continue;
-
-			Graphics.DrawModelInstanced( model, CollectionsMarshal.AsSpan( batch.Transforms ) );
-		}
+		_commandList.ExecuteOnRenderThread();
 	}
 }

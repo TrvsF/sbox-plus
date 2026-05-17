@@ -125,6 +125,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 	/// </summary>
 	public void ResetEnvironment()
 	{
+		using var scope = GlobalContext.GameScope();
+
 		Log.Trace( "Game Menu - ResetEnvironment" );
 
 
@@ -210,7 +212,6 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			Game.NodeLibrary.AddAssembly( a.Assembly );
 			ConVarSystem.AddAssembly( a.Assembly, "game" );
 			Cloud.UpdateTypes( a.Assembly );
-			Json.Initialize();
 			JsonUpgrader.UpdateUpgraders( TypeLibrary );
 
 			if ( !a.IsEditorAssembly && a.CodeArchiveBytes is not null )
@@ -262,6 +263,11 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 	private void AddArchiveToCodeArchiveTable( LoadedAssembly a )
 	{
 		if ( a?.CodeArchiveBytes is null )
+			return;
+
+		// Only send code archives if we're a developer host (editor) or a dedicated server
+		// started with a local project — clients can download remote packages from sbox.game.
+		if ( !Application.IsEditor && !(Application.IsDedicatedServer && Application.GamePackage is LocalPackage) )
 			return;
 
 		//
@@ -372,6 +378,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 		CancelLoad();
 
 		if ( gameInstance is null ) return;
+
+		using var scope = GlobalContext.GameScope();
 
 		ConVarSystem.SaveAll();
 
@@ -516,6 +524,17 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 
 	public void Disconnect( string message = null )
 	{
+		if ( !string.IsNullOrEmpty( message ) )
+		{
+			Log.Warning( $"Disconnected: {message.Replace( "\n", "" )}" );
+		}
+
+		if ( Networking.IsMatchmaking )
+		{
+			// don't want any disconnection popups, or to close the game or loading ui - matchmaking should handle all that
+			return;
+		}
+
 		// cancel any in-progress load right now instead of waiting for tick
 		CancelLoad();
 		Game.Close();
@@ -524,8 +543,6 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 		{
 			using var scope = GlobalContext.MenuScope();
 			IModalSystem.Current.Notice( "Disconnected", message, "wifi_off" );
-
-			Log.Warning( $"Disconnected: {message.Replace( "\n", "" )}" );
 		}
 
 		LoadingScreen.IsVisible = false;
@@ -541,7 +558,7 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 	/// <summary>
 	/// Loads the game asynchronously
 	/// </summary>
-	public async Task LoadGamePackageAsync( string ident, GameLoadingFlags flags, CancellationToken ct )
+	public async Task<bool> LoadGamePackageAsync( string ident, GameLoadingFlags flags, CancellationToken ct )
 	{
 		try
 		{
@@ -551,7 +568,10 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			_loadGameCts?.Dispose();
 			_loadGameCts = CancellationTokenSource.CreateLinkedTokenSource( ct );
 
-			await LoadGamePackageAsyncInternal( ident, flags, _loadGameCts.Token );
+			var token = _loadGameCts.Token;
+			await LoadGamePackageAsyncInternal( ident, flags, token );
+
+			return !token.IsCancellationRequested;
 		}
 		catch ( System.Exception e )
 		{
@@ -561,7 +581,7 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			{
 				using ( IMenuDll.Current?.PushScope() )
 				{
-					IMenuSystem.Current?.Popup( "error", "Loading Error", $"There was an error when loading this game. {e.Message}" );
+					IModalSystem.Current?.Notice( "Loading Error", $"An error occurred when loading this game.\n\n{e.Message}", "error" );
 				}
 
 				Log.Warning( e, e.Message );
@@ -576,6 +596,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			LoadingScreen.IsVisible = false;
 			LoadingScreen.Media = null;
 		}
+
+		return false;
 	}
 
 	public async Task LoadGamePackageAsyncInternal( string ident, GameLoadingFlags flags, CancellationToken ct )
@@ -660,6 +682,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 				throw new Exception( "GameInstance load failed" );
 			}
 
+			Json.PopulateReflectionCache( Game.TypeLibrary );
+
 			if ( ct.IsCancellationRequested )
 				return;
 
@@ -718,6 +742,9 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			{
 				Game.IsPlaying = true;
 
+				LoadingScreen.Title = flags.Contains( GameLoadingFlags.Host ) ? "Starting Game" : "Joining Game..";
+				await Task.Yield();
+
 				IMenuDll.Current?.OnGameEntered();
 			}
 		}
@@ -726,6 +753,8 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 			// Loading failed
 			if ( newInstance is not null )
 			{
+				using var _ = GlobalContext.GameScope();
+
 				newInstance.Close();
 				newInstance.Shutdown();
 				newInstance = default;
@@ -735,17 +764,11 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 
 	private void OnPackageInstalled( PackageManager.ActivePackage package, string context )
 	{
+		if ( context != "game" ) return;
 		Log.Trace( $"OnPackageInstalled: {package.Package.FullIdent} {context}" );
 
-		// only load if a game context (tools can install packages)
-		if ( context != "game" ) return;
-
-		// Load all the GameResources and fonts in the package
-		if ( package.FileSystem is not null )
-		{
-			ResourceLoader.LoadAllGameResource( package.FileSystem );
-			FontManager.Instance.LoadAll( package.FileSystem );
-		}
+		// Register assemblies from this package so types are available immediately.
+		AssemblyEnroller?.LoadPackage( package.Package.FullIdent, true );
 	}
 
 	/// <summary>
@@ -896,27 +919,10 @@ internal partial class GameInstanceDll : Engine.IGameInstanceDll
 	{
 		IGameInstanceDll.Current = new GameInstanceDll();
 
-		// PreJIT the methods in these dlls to avoid doing it during the game
-		{
-			var e = new Api.Events.EventRecord( "PreJIT.Game" );
-
-			using ( e.ScopeTimer( "Sandbox.GameInstance" ) )
-			{
-				Sandbox.ReflectionUtility.PreJIT( typeof( GameInstanceDll ).Assembly );
-			}
-
-			using ( e.ScopeTimer( "Sandbox.System" ) )
-			{
-				Sandbox.ReflectionUtility.PreJIT( typeof( Vector3 ).Assembly );
-			}
-
-			using ( e.ScopeTimer( "Sandbox.Engine" ) )
-			{
-				Sandbox.ReflectionUtility.PreJIT( typeof( Bootstrap ).Assembly );
-			}
-
-			e.Submit();
-		}
+		// PreJIT the methods in these dlls on background threads to avoid stalls during gameplay
+		_ = Sandbox.ReflectionUtility.PreJITAsync( typeof( GameInstanceDll ).Assembly );
+		_ = Sandbox.ReflectionUtility.PreJITAsync( typeof( Vector3 ).Assembly );
+		_ = Sandbox.ReflectionUtility.PreJITAsync( typeof( Bootstrap ).Assembly );
 	}
 
 	/// <summary>

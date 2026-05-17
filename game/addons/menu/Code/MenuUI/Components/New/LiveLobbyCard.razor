@@ -5,19 +5,20 @@
 
 @if (package == null)
 	return;
+<root class="@(!MenuHelpers.HasAuthority ? "disabled" : "")">
+	<ListCard Title=@package.Title Image=@package.Thumb>
+		<Bottom>
+			<label class="eyebrow">@Lobby.Name</label>
 
-<ListCard Title=@package.Title Image=@package.Thumb>
-    <Bottom>
-        <label class="eyebrow">@Lobby.Name</label>
+			<div class="grow" />
 
-        <div class="grow" />
-
-        <badge>
-            <icon class="eyebrow">person</icon>
-            <label class="eyebrow">@($"{Lobby.Members} / {Lobby.MaxMembers}")</label>
-        </badge>
-    </Bottom>
-</ListCard>
+			<badge>
+				<icon class="eyebrow">person</icon>
+				<label class="eyebrow">@($"{Lobby.Members} / {Lobby.MaxMembers}")</label>
+			</badge>
+		</Bottom>
+	</ListCard>
+</root>
 
 @code
 {
@@ -54,6 +55,8 @@
 		menu.AddSpacer();
 		menu.AddOption("info", $"View Game Details", () => Game.Overlay.ShowGameModal(package.FullIdent));
 		menu.AddOption("corporate_fare", $"View Creator Details", () => Game.Overlay.ShowOrganizationModal(package.Org));
-		menu.AddOption("star", "Rate Game", () => Game.Overlay.ShowReviewModal(package));
+		menu.AddOption("star", "Review Game", () => Game.Overlay.ShowReviewModal(package));
 	}
+
+	protected override int BuildHash() => System.HashCode.Combine( MenuHelpers.HasAuthority );
 }

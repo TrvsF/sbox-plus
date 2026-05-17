@@ -272,6 +272,12 @@ public partial class ModelRenderer : Renderer, ExecuteInEditor, ITintable, IMate
 
 		var model = Model ?? Model.Load( "models/dev/box.vmdl" );
 
+		if ( MaterialOverride is not null )
+		{
+			NativeErrorReporter.Breadcrumb( false, "material_override.spawn",
+				$"ModelRenderer spawned with MaterialOverride='{MaterialOverride.ResourcePath}' on '{GameObject?.Name ?? "null"}' (model='{model?.ResourcePath ?? "null"}', scene='{Scene?.Name ?? "null"}', taggedOverrides={taggedMaterialOverrides?.Count ?? 0})" );
+		}
+
 		_sceneObject = new SceneObject( Scene.SceneWorld, model, WorldTransform );
 		OnSceneObjectCreated( _sceneObject );
 
@@ -323,8 +329,10 @@ public partial class ModelRenderer : Renderer, ExecuteInEditor, ITintable, IMate
 	/// <summary>
 	/// Tags have been updated - lets update our scene object tags
 	/// </summary>
-	protected override void OnTagsChanged()
+	internal override void OnTagsUpdatedInternal()
 	{
+		base.OnTagsUpdatedInternal();
+
 		if ( !_sceneObject.IsValid() ) return;
 
 		_sceneObject.Tags.SetFrom( GameObject.Tags );

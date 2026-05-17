@@ -40,6 +40,8 @@ public class ModalSystem : IModalSystem
 	{
 		MenuOverlay.Instance.AddChild( modal );
 		modal.OnClosed += ( s ) => OnModalClosing( modal, s );
+		modal.Style.ZIndex = (OpenModals.LastOrDefault()?.Style.ZIndex ?? 1000) + 10;
+
 		OpenModals.Add( modal );
 	}
 
@@ -126,6 +128,7 @@ public class ModalSystem : IModalSystem
 		modal.Org = org;
 		Push( modal );
 	}
+
 	public void Review( Package package )
 	{
 		var modal = new ReviewModal();
@@ -142,6 +145,11 @@ public class ModalSystem : IModalSystem
 	{
 		var modal = new ServerListModal( config );
 		Push( modal );
+	}
+
+	public void Server( Sandbox.Network.LobbyInformation lobby )
+	{
+		Push( new ServerModal { Server = lobby } );
 	}
 
 	public void PlayerList()
@@ -212,6 +220,11 @@ public class ModalSystem : IModalSystem
 			Message = message,
 			Icon = icon
 		} );
+	}
+
+	public void Report( string packageIdent )
+	{
+		Push( new ReportModal() { PackageIdent = packageIdent } );
 	}
 
 	public bool IsModalOpen => HasModalsOpen();
